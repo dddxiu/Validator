@@ -44,10 +44,15 @@ class Rule
      */
     private function explode($rules)
     {
-        if (is_string($rules)) {
+        if (is_array($rules)) {
             $rule_arr = [];
-            foreach (explode('|', $rules) as $rule) {
-                $rule_arr[] = $this->parse_rule($rule);
+            foreach ($rules as $rule) {
+                $temp_r = $this->parse_rule($rule);
+                if (is_array($temp_r[0])) {
+                    $rule_arr = array_merge($rule_arr, $temp_r);
+                } else {
+                    $rule_arr[] = $temp_r;
+                }
             }
             return $rule_arr;
         }
@@ -73,80 +78,102 @@ class Rule
 
         $args= [];
         $ret = false;
+        $rule_list = [];
         if (strlen($r) === 1) {
+            $sub_r = $r;
             switch ($r) {
                 // required
-                case 'r': $ret= $this->_r($p); break;
+                case 'r': $ret = $this->_r($p); break;
                 // nullable(默认值)
-                case 'n': $ret= $this->_n($p); break;
+                case 'n': $ret = $this->_n($p); break;
                 // string,长度 
                 // 解析参数 10,[],(),[),(]
                 case 's':
+                    list(, $ret, $args) = $this->_s(['c','',NULL]);
+                    $rule_list[] = [$r, $ret, $args];
                     list($sub_r, $ret, $args) = $this->_s($p);
                     $r = "{$r}{$sub_r}";
                     break;
                 // digit,数字大小
                 // 解析参数 10,[],(),[),(]
                 case 'd':
+                    list(, $ret, $args) = $this->_d(['c','',NULL]);
+                    $rule_list[] = [$r, $ret, $args];
                     list($sub_r, $ret, $args) = $this->_d($p);
+                    $r = "{$r}{$sub_r}";
+                    break;
+                case 'i':
+                    list(, $ret, $args) = $this->_i(['c','',NULL]);
+                    $rule_list[] = [$r, $ret, $args];
+                    list($sub_r, $ret, $args) = $this->_i($p);
+                    $r = "{$r}{$sub_r}";
+                    break;
+                case 'f':
+                    list(, $ret, $args) = $this->_f(['c','',NULL]);
+                    $rule_list[] = [$r, $ret, $args];
+                    list($sub_r, $ret, $args) = $this->_f($p);
                     $r = "{$r}{$sub_r}";
                     break;
                 // [A-Za-z0-9_]
                 // 解析参数 10,[],(),[),(]
                 case 'w':
+                    list(, $ret, $args) = $this->_w(['c','',NULL]);
+                    $rule_list[] = [$r, $ret, $args];
                     list($sub_r, $ret, $args) = $this->_w($p);
                     $r = "{$r}{$sub_r}";
                     break;
-                // enum
+                // enum,不需要解析基本类型
                 // 解析参数 e[2,4,6]
                 case 'e':
-                    list($sub_r, $ret, $args) = $this->_e($p);
+                    list(, $ret, $args) = $this->_e($p);
                     break;
             }
-            return [$r, $ret, $args];
+            $rule_list[] = [$r, $ret, $args];
+            
+        } else {
+            switch($r) {
+                case 'em': // 枚举多选 em[1,3,5]
+                    $ret = $this->_em($p);
+                    break;
+                case 'mail': // 邮件
+                    $ret = $this->_mail($p);
+                    break;
+                case 'date': // 日期
+                    $ret = $this->_date($p);
+                    break;
+                case 'ts': // 时间戳
+                    $ret = $this->_ts($p);
+                    break;
+                case 'url': // url
+                    $ret = $this->_url($p);
+                    break;
+                case 'json': // json
+                    $ret = $this->_json($p);
+                    break;
+                case 'ip': // ip
+                    $ret = $this->_ip($p);
+                    break;
+                case 'regx': // 正则
+                    $ret = $this->_regx($p);
+                    break;
+                case 'alpha': // 希腊字母
+                    $ret = $this->_alpha($p);
+                    break;
+                case 'zh': // 汉字
+                    $ret = $this->_zh($p);
+                    break;
+                case 'phoneCn': // 中国区电话号码
+                    $ret = $this->_phoneCn($p);
+                    break;
+                default:
+                    // 用户定义解析
+                    if (array_key_exists($r, $this->rules)) {
+                        $ret = $this->rules[$r];
+                    }
+            }
+            $rule_list[] = [$r, $ret, $args];
         }
-
-        switch($r) {
-            case 'em': // 枚举多选 em[1,3,5]
-                $ret = $this->_em($p);
-                break;
-            case 'mail': // 邮件
-                $ret = $this->_mail($p);
-                break;
-            case 'date': // 日期
-                $ret = $this->_date($p);
-                break;
-            case 'ts': // 时间戳
-                $ret = $this->_ts($p);
-                break;
-            case 'url': // url
-                $ret = $this->_url($p);
-                break;
-            case 'json': // json
-                $ret = $this->_json($p);
-                break;
-            case 'ip': // ip
-                $ret = $this->_ip($p);
-                break;
-            case 'regx': // 正则
-                $ret = $this->_regx($p);
-                break;
-            case 'alpha': // 希腊字母
-                $ret = $this->_alpha($p);
-                break;
-            case 'zh': // 汉字
-                $ret = $this->_zh($p);
-                break;
-            case 'phoneCn': // 中国区电话号码
-                $ret = $this->_phoneCn($p);
-                break;
-            default:
-                // 用户定义解析
-                if (array_key_exists($r, $this->rules)) {
-                    $ret = $this->rules[$r];
-                }
-        }
-        return [$r, $ret, $args];
+        return $rule_list;
     }
 
     private function separate($rule_str)
@@ -208,7 +235,7 @@ class Rule
     /**
      * 解析参数中的区间问题
      */
-    private function _args_bracket($p, $t='str')
+    private function _args_bracket($p, $t='str', $extra=NULL)
     {
         if ($t === 'enum') {
             $fun = function($input, $field) use ($p) {
@@ -225,7 +252,7 @@ class Rule
         }
 
         // 字符 长度
-        if ($t == 'str') {
+        if ($t == 'str' && isset($p[2])) {
             $min = intval($p[2][0]);
             $max = intval($p[2][1] ?? NULL);
         }
@@ -279,6 +306,11 @@ class Rule
                     return ($v == $min);
                 };
                 break;
+            case 'c': // 自定义校对
+                if (is_callable($extra)) {
+                    $fun = $extra;
+                }
+                break;
             default:
                 $sub_r = '';
                 break;
@@ -301,7 +333,9 @@ class Rule
      */
     private function _n()
     {
-        return true;
+        return function($input, $field){
+            return true;
+        };
     }
 
     /**
@@ -309,7 +343,17 @@ class Rule
      */
     private function _w($p)
     {
-        return $this->_args_bracket($p, 'str');
+        return $this->_args_bracket($p, 'str', function($input, $field){
+            $i = -1;
+            $v = $input[$field];
+            while (isset($v[++$i])) {
+                if ($i === '_')
+                    continue;
+                if (!ctype_alnum($v[$i]))
+                    return false;
+            }
+            return true;
+        });
     }
 
     /**
@@ -321,11 +365,36 @@ class Rule
     }
 
     /**
-     * digit
+     * digit 数字包含整数和浮点数
      */
     private function _d($p)
     {
-        return $this->_args_bracket($p, 'num');
+        return $this->_args_bracket($p, 'num', function($v)
+        {
+            return is_numeric($v);
+        });
+    }
+
+    /**
+     * 整型
+     */
+    private function _i($p)
+    {
+        return $this->_args_bracket($p, 'num', function($v)
+        {
+            return (intval($v) == $v);
+        });
+    }
+
+    /**
+     * 浮点型
+     */
+    private function _f($p)
+    {
+        return $this->_args_bracket($p, 'num', function($v)
+        {
+            return (floatval($v) == $v);
+        });
     }
 
     /**

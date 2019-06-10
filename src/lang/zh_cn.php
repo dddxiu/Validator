@@ -18,8 +18,8 @@ return [
     'd[)'  => ':field 数字大小在:min~:max之间,包含:min,不包含:max!',
     'd(]'  => ':field 数字大小在:min~:max之间,不包含:min,包含:max!',
     
-    'w'    => ':field 字符在[A-Za-z0-9_]!',
-    'wn'  => ':field 字符串长度为:val!',
+    'w'    => ':field 字符为[A-Za-z0-9_]!',
+    'wn'   => ':field 字符串长度为:val!',
     'w[]'  => ':field 字符长度在:min~:max之间,包含:min,:max!',
     'w()'  => ':field 字符长度在:min~:max之间,不包含:min,:max!',
     'w[)'  => ':field 字符长度在:min~:max之间,包含:min,不包含:max!',

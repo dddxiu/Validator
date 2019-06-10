@@ -89,49 +89,59 @@ class Validator
         $this->error_list = [];
         $rule_list_user = $this->rules;
         foreach ($rule_list_user as $field => $rule_str) {
-            $rule_list = Rule::explode($rule_str);
 
-            $required = false;
-            foreach ($rule_list as $v) {
-                if (is_array($v) && is_string($v[0]) && $v[0] === 'r') {
-                    $required = true;
-                    break;
+            if (is_array($rule_str) && is_callable($rule_str[0])) {
+                $msg = $rule_str[1] ?? "{$field} format error!";
+                $ret = $rule_str[0]($this->input, $field);
+                if ($ret === false) {
+                    $this->error_list[] = $msg;
+                    if ($continue === false) {
+                        return $this;
+                    }
                 }
-            }
-
-            // require 先取
-            $input_field = $this->input[$field] ?? false;
-            if ($input_field === false && !$required) {
                 continue;
             }
 
+            $rule_array = explode('|', $rule_str);
+
+            // $required
+            if (in_array('r', $rule_array)
+                && !array_key_exists($field, $this->input)) {
+                $this->msg('r', $field, NULL);
+                if ($continue === false) {
+                    return $this;
+                }
+                continue;
+            } elseif (!in_array('n', $rule_array)) {
+                $rule_array[] = 'n';
+            }
+
+            // nullable:
+            // 1. not n && input not exists
+            // 2. n && input not exists
+            if (in_array('n', $rule_array)
+                && !array_key_exists($field, $this->input)) {
+                continue;
+            }
+
+            $rule_list = Rule::explode($rule_array);
             if ($rule_list === false) {
                 throw new Exception("rule error", 1);
             }
-
             foreach ($rule_list as $rule_info) {
-                // 回调
-                if (is_callable($rule_info)) {
-                    $ret = $rule_info($this->input[$field]);
-                    if ($ret === false) {
-                        $this->error_list[] = "{$field} 格式不正确!";
-                        if ($continue === false) {
-                            return $this;
-                        }
-                    }
-                    continue;
-                }
 
                 // 标准回调
                 list($type, $rule, $args) = $rule_info;
                 if ($rule === false) {
                     throw new \Exception("rule not exists", 1);
                 }
-                $ret = $rule($this->input, $field);
+
+                $ret = true;
+                if (is_callable($rule)) {
+                    $ret = $rule($this->input, $field);
+                }
                 if ($ret === false) {
-                    $msg = $this->msgs[$field]??[];
-                    $err = Message::format($type, [$field, $args], $msg);
-                    $this->error_list[] = $err;
+                    $this->msg($type, $field, $args);
                     if ($continue === false) {
                         return $this;
                     }
@@ -141,6 +151,13 @@ class Validator
 
         // check 校对
         return $this;
+    }
+
+    private function msg($t='', $f='', $p='')
+    {
+        $msg = $this->msgs[$f]??[];
+        $err = Message::format($t, [$f, $p], $msg);
+        $this->error_list[] = $err;
     }
 
     /**
@@ -156,10 +173,21 @@ class Validator
      */
     private function errors($all=false)
     {
-        if ($all===true) {
+        if ($all === true) {
             return $this->error_list;
         }
         return array_shift($this->error_list);
+    }
+
+    /**
+     * 清理错误
+     */
+    private function clean()
+    {
+        $this->rules = [];
+        $this->input = [];
+        $this->msgs  = [];
+        $this->error_list = [];
     }
 
     public static function __callStatic($method_name, $args)
