@@ -7,13 +7,13 @@ namespace Dddxiu;
  */
 class Message
 {
-    static private $instance;
 
     public function __construct($lang='zh_cn')
     {
         $this->lang = $lang;
         $this->load();
     }
+
 
     /**
      * 加载语言文件
@@ -28,6 +28,7 @@ class Message
         $this->msgs = include_once $path;
     }
 
+
     /**
      * 校对器注册错误提示
      * @param  string $key [description]
@@ -39,11 +40,12 @@ class Message
         $this->msgs[$key] = $msg;
     }
 
+
     /**
      * 格式化错误
-     * name => r|w[6,20]
+     * name => r|w
      *     1. name.r
-     *     2. name.w[]
+     *     2. name.w
      * @param  string $t 错误类型 
      * @param  string $p 参数[$field, [$min, $max]]
      * @param  string $c 自定义消息
@@ -69,6 +71,10 @@ class Message
         }
         return $msg;
     }
+    
+
+    static private $instance;
+
 
     public static function __callStatic($method_name, $args)
     {
@@ -79,6 +85,7 @@ class Message
         throw new Exception("{$method_name} not exists", 1);
     }
 
+
     public function __call($method_name, $args)
     {
         if (method_exists($this, $method_name)) {
@@ -86,6 +93,7 @@ class Message
         };
         throw new Exception("{$method_name} not exists", 1);
     }
+
 
     public static function getInstance()
     {

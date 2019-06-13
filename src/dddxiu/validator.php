@@ -2,35 +2,33 @@
 
 namespace Dddxiu;
 
-use \Dddxiu\Rule;
+use \Dddxiu\Funnel;
 use \Dddxiu\Message;
+
+use Dddxiu\exception\ArgsException;
 
 /**
  * 校验器
  */
 class Validator
 {
-    static private $instance;
-
-    public function __construct()
-    {
-        # code...
-    }
-
     /**
      * 自定义校验规则
+     * 
      * @param  [type] $key      [description]
      * @param  [type] $callable [description]
      * @return [type]           [description]
      */
     private function make($key, $callable, $msg)
     {
-        Rule::register($key, $callable);
+        Funnel::register($key, $callable);
         Message::register($key, $msg);
     }
 
+
     /**
      * 校对信息
+     * 
      * @param  array  $input 输入参数
      * @param  array  $rules 校对规则
      * @param  array|boolean  $msgs  自定义消息|立即返回,传入boolean会忽略$ret
@@ -46,28 +44,31 @@ class Validator
         return $this->msgs($msgs)->check($ret);
     }
 
+
     /**
      * 输入
      */
-    public function input($input)
+    private function input($input)
     {
         $this->input = $input;
         return $this;
     }
 
+
     /**
      * 规则
      */
-    public function rules($rules)
+    private function rules($rules)
     {
         $this->rules = $rules;
         return $this;
     }
 
+
     /**
      * 自定义信息
      */
-    public function msgs($msgs=[])
+    private function msgs($msgs=[])
     {
         $this->msgs = [];
         foreach ($msgs as $field_rule => $msg) {
@@ -81,84 +82,17 @@ class Validator
         return $this;
     }
 
+
     /**
-     * 校验
+     * 检查字段
      */
-    public function check($continue=false)
+    private function check($final=false)
     {
-        $this->error_list = [];
-        $rule_list_user = $this->rules;
-        foreach ($rule_list_user as $field => $rule_str) {
-
-            if (is_array($rule_str) && is_callable($rule_str[0])) {
-                $msg = $rule_str[1] ?? "{$field} format error!";
-                $ret = $rule_str[0]($this->input, $field);
-                if ($ret === false) {
-                    $this->error_list[] = $msg;
-                    if ($continue === false) {
-                        return $this;
-                    }
-                }
-                continue;
-            }
-
-            $rule_array = explode('|', $rule_str);
-
-            // $required
-            if (in_array('r', $rule_array)
-                && !array_key_exists($field, $this->input)) {
-                $this->msg('r', $field, NULL);
-                if ($continue === false) {
-                    return $this;
-                }
-                continue;
-            } elseif (!in_array('n', $rule_array)) {
-                $rule_array[] = 'n';
-            }
-
-            // nullable:
-            // 1. not n && input not exists
-            // 2. n && input not exists
-            if (in_array('n', $rule_array)
-                && !array_key_exists($field, $this->input)) {
-                continue;
-            }
-
-            $rule_list = Rule::explode($rule_array);
-            if ($rule_list === false) {
-                throw new Exception("rule error", 1);
-            }
-            foreach ($rule_list as $rule_info) {
-
-                // 标准回调
-                list($type, $rule, $args) = $rule_info;
-                if ($rule === false) {
-                    throw new \Exception("rule not exists", 1);
-                }
-
-                $ret = true;
-                if (is_callable($rule)) {
-                    $ret = $rule($this->input, $field);
-                }
-                if ($ret === false) {
-                    $this->msg($type, $field, $args);
-                    if ($continue === false) {
-                        return $this;
-                    }
-                }
-            }
-        }
-
-        // check 校对
+        Funnel::standing($this->input, $this->rules, $final);
+        $this->error_list = Funnel::get_errors();
         return $this;
     }
 
-    private function msg($t='', $f='', $p='')
-    {
-        $msg = $this->msgs[$f]??[];
-        $err = Message::format($t, [$f, $p], $msg);
-        $this->error_list[] = $err;
-    }
 
     /**
      * 校验通过
@@ -168,16 +102,29 @@ class Validator
         return (count($this->error_list) === 0);
     }
 
+
     /**
      * 错误列表
      */
     private function errors($all=false)
     {
-        if ($all === true) {
-            return $this->error_list;
+        $temp_errors = [];
+        foreach ($this->error_list as $field => $rule_list) {
+            $msg = $this->msgs[$field]??[];
+
+            foreach ($rule_list as $rule => $value) {
+                list($input_val, $rule_val) = $value;
+                $err = Message::format($rule, [$field, $rule_val], $msg);
+                $temp_errors[] = $err;
+                if ($all === false) {
+                    return $temp_errors;
+                }
+            }
         }
-        return array_shift($this->error_list);
+
+        return $temp_errors;
     }
+
 
     /**
      * 清理错误
@@ -189,6 +136,10 @@ class Validator
         $this->msgs  = [];
         $this->error_list = [];
     }
+    
+
+    static private $instance;
+
 
     public static function __callStatic($method_name, $args)
     {
@@ -199,6 +150,16 @@ class Validator
         throw new Exception("{$method_name} not exists", 1);
     }
 
+
+    public function __call($name, $args)
+    {
+        if (method_exists($this, $name)) {
+            return call_user_func_array([$this, $name], $args);
+        };
+        throw new ArgsException("{$name} not exists", 1);
+    }
+
+    
     public static function getInstance()
     {
         if (NULL == self::$instance) {
@@ -206,4 +167,28 @@ class Validator
         }
         return self::$instance;
     }
+}
+
+/**
+ * validator::check($input, $rule, $msg, $ret)
+ */
+function vc($input, $rule, $msg=[], $ret=false)
+{
+    return Validator::validate($input, $rule, $msg, $ret);
+}
+
+/**
+ * validator::pass()
+ */
+function vp()
+{
+    return Validator::pass();
+}
+
+/**
+ * validator::error()
+ */
+function ve($all=false)
+{
+    return Validator::errors($all);
 }

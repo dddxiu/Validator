@@ -3,49 +3,48 @@
 include dirname(__DIR__).'/vendor/autoload.php';
 
 $input = [
-    'name'     => 'doo`xxx',
+    'name'     => 'doo`xxx', // 多了反引符号
     'birthday' => '1990-01-01',
     'phone'    => '13312341234',
-    'gender'   => 'male',
+    'gender'   => 'males', // 多了males
     'interest' => 'basketball,football',
-    'mail'     => 'aksjd@qq.com',
-    'uid'      => '10000000000100000002',
+    'mail'     => 'aksjd_qq.com', // 没有 @
+    'uid'      => '100000`00000100000002', // 仅需要19位,且位w
+    'no'       => '100000`00000100000002', // 必须有
 ];
 
 
 // 注册用户函数
-$tb = [
-    '10000000000100000000',
-    '10000000000100000001',
-    '10000000000100000002',
-    '10000000000100000003',
+$data = [
+    'tb' => [
+        'id' => [
+            '10000000000100000000',
+            '10000000000100000001',
+            '10000000000100000002',
+            '10000000000100000003',
+        ]
+    ]
 ];
-\Dddxiu\Validator::make('unique', function($input, $field) use ($tb) {
-    return !in_array($input[$field], $tb);
-}, ':field 必须唯一值!');
+$valid_fun = function($input, $field, $rule_val, &$next, &$prev) use ($data) {
+    return !in_array($input[$field], $data[$rule_val[0]][$rule_val[1]]);
+};
+\Dddxiu\Validator::make('unique', $valid_fun, ':field 必须唯一值!');
 
 
 // 校验:
-// input没有字段
-// rule没有r规则
-//  => 不会校验
 \Dddxiu\Validator::validate($input,
 [
-    'name'     => 'w[6,20]',
-    'birthday' => [function($input, $field){
-        $birthday = $input[$field];
-        return ((time() - strtotime($birthday))/(3600*24*365))>50;
-    }, '必须年满50岁!'],
-    'phone'    => 'phoneCn',
-    'gender'   => 'r|e[male,female,none]',
-    'interest' => 'r|em[basketball,football,rugby,dance]',
+    'name'     => 'r|w|bt:6,20|unique:tb,id',
+    'phone'    => 'phoneCN',
+    'gender'   => 'r|e:male,female,none',
+    'interest' => 'r|multi:basketball,football,rugby,dance',
     'mail'     => 'r|mail',
-    'uid'      => 'r|w20|unique',
-    'no'       => 'r',
+    'uid'      => 'r|w|len:19',
+    'no'       => 'r|i',
 ],
 [
-    'name.r' => ':field必须填写',
-    'name.w[]' => ':field长度在:min~:max',
+    'name.r' => ':field 必须填写!!!',
+    'name.w' => ':field 是英文字母和数字!!!',
     'uid.unique' => ':field 的值必须是唯一的值',
 ], true);
 
@@ -55,3 +54,6 @@ if (!\Dddxiu\Validator::pass()) {
 } else {
     echo "pass\n";
 }
+
+
+// vc vp ve

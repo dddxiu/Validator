@@ -1,41 +1,6 @@
 
 # 使用说明
 
-```
-// 自定义验证器
-// phone
-Validator::make('phone', function($arg){
-    if (preg_match("/^1[34578]\d{9}$/", $arg)) {
-        return true;
-    }
-    return '手机号不合法!';
-});
-// unique:tb_user,id
-Validator::make('unique', function($arg, $rule_args) use ($db){
-    list($tb, $field) = explode(',', $rule_args);
-    $ret = $db($tb)->where("{$field}={$arg}")->find();
-    if ($ret) {
-        return true;
-    }
-    return '已经存在信息了!';
-});
-
-// 验证 第三个参数或第四个参数直接给true,会直接返回json格式错误,不会继续往下走
-$ret = Validator::validate($input,
-[
-    'name' => 'r|s[6,10]',
-    'age'  => function($age){return string|boolean;},
-    'phone'=> 'r|phone|unique:t_user,phone',
-],
-[
-    name.r => '必须填写',
-    name.s => '长度在6~10'
-], false);
-if ($ret !== false) {
-    var_dump($ret);
-    exit;
-}
-```
 
 初始化加载 自定义验证 类型
 
@@ -47,17 +12,25 @@ if ($ret !== false) {
 |---|---|---|---|---|
 |r|required|必须填写,即isset|`r`|无|
 |n|nullable|可以为空,默认值|`r`|无|
-|s|string|任何字符|`s`|`s[2,3]`,`s[2,3)`,`s(2,3]`,`s3`|
-|d|digit|数字, 即is_numeric|`r`|同s,是数字范围大小,非数字长短|
-|w|[A-Za-z0-9_]|字符|`w`|同`s`|
-|e|enum|枚举|`e[male,female,none]`|多选`e[male,female,none]m`|
-|mail|mail|邮件|`email`|无|
-|date|date|strtotime|`date:Y-m-d`|格式,默认兼容strtotime|
-|ts|timestamp|有效的unix|`ts`|偏移年限`ts[100, 10000]`|
+|a|alpha|希腊字母|`alpha`|同`s`|
+|w|[A-Za-z0-9]|字符|`w`|同`s`|
+|s|string|任何字符|`s`|`s`|
+|d|digit|包含浮点数|`d`|无|
+|i|integer|整数|`i`|无|
+|f|folat|浮点数|`f`|无|
+|e|enum|枚举|`e:male,female,none`|单选`e:male,female,none`|
+|multi|multi|枚举多选|`multi:male,female,none`|多选`multi:male,female,none`|
+|mail|mail|邮件|`mail`|无|
+|date|date|strtotime|`date:Y-m-d`|无|
+|ts|timestamp|有效的unix|`ts`|偏移年限`ts:100`|
 |url|url|有效的`http://demo.com`|`url`|无|
 |json|json|json_decode|`json`|无|
 |ip|ip|ip|`ip`|无|
 |regx|regx|正则|`regx:/\w{6,20}/isU`|无|
-|alpha|alpha|希腊字母|`alpha`|同s|
-|zh|zh|汉字|`zh`|同s|
+|zh|zh|汉字|`zh`|无|
+|phoneCN|phoneCN|中文|`zh`|无|
+|len|length|指定长度|`len:6`|无|
+|bt|between|之间(包含)|`bt:5,12`|数字大小,字符长短,时间早晚|
+|min|min|指定长度|`min:6`|数字大小,字符长短,时间早晚|
+|max|max|指定长度|`max:6`|数字大小,字符长短,时间早晚|
 
