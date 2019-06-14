@@ -10,9 +10,6 @@ class Enum extends Rule
     // flag
     const F = 'e';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 单选
@@ -23,8 +20,12 @@ class Enum extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return in_array($input[$field], $args);
+        $pass = in_array($input[$field], $args);
+        if ($pass) {
+            return $layer::then();
+        }
+        return false;
     }
 }

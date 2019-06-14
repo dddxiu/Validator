@@ -10,9 +10,6 @@ class IP extends Rule
     // flag
     const F = 'ip';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * ip
@@ -23,9 +20,13 @@ class IP extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
         $pat = "/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/";
-        return (preg_match($pat, $input[$field]) === 1);
+        $pass= (preg_match($pat, $input[$field]) === 1);
+        if ($pass) {
+            return $layer::then(['type' => $layer::FIELD_TYPE_STR]);
+        }
+        return false;
     }
 }

@@ -10,9 +10,6 @@ class Multi extends Rule
     // flag
     const F = 'multi';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 多选
@@ -23,7 +20,7 @@ class Multi extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
         $vars = $input[$field];
         if (is_string($vars)) {
@@ -39,6 +36,6 @@ class Multi extends Rule
                 return false;
             }
         }
-        return true;
+        return $layer::then();
     }
 }

@@ -10,21 +10,23 @@ class Chinese extends Rule
     // flag
     const F = 'zh';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 汉字
      * 
      * @param  [type] $input [description]
      * @param  [type] $field [description]
+     * @param  [type] $layer [description]
      * @param  [type] $args  [description]
-     * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return (preg_match('/^[\x4e00-\x9fa5]+$/', $input[$field]) === 1);
+        // u 模式修正与 中文utf8 \u4e00 冲突
+        $pass = (preg_match('/^[\x{4e00}-\x{9fa5}]+/u', $input[$field]) === 1);
+        if ($pass) {
+            return $layer::then(['type'=>$layer::FIELD_TYPE_STR]);
+        }
+        return false;
     }
 }

@@ -10,9 +10,6 @@ class phoneCN extends Rule
     // flag
     const F = 'phoneCN';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 手机
@@ -23,8 +20,12 @@ class phoneCN extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return (preg_match("/^1[3456789]\d{9}$/", $input[$field]) === 1);
+        $pass = (preg_match("/^1[3456789]\d{9}$/", $input[$field]) === 1);
+        if ($pass) {
+            return $layer::then($layer::FIELD_TYPE_STR);
+        }
+        return false;
     }
 }

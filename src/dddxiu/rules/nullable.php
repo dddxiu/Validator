@@ -10,9 +10,6 @@ class Nullable extends Rule
     // flag
     const F = 'n';
 
-    // exec sort
-    const S = 1;
-
 
     /**
      * 没有值就不继续校验
@@ -23,9 +20,8 @@ class Nullable extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $next = array_key_exists($field, $input);
-        return true;
+        return $layer::then();
     }
 }

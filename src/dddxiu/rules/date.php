@@ -12,9 +12,6 @@ class Date extends Rule
     // flag
     const F = 'date';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 日期
@@ -25,15 +22,17 @@ class Date extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $prev['type'] = Funnel::FIELD_TYPE_DATE;
-
         if (count($args) == 0) {
-            return strtotime($input[$field])>0;
+            $pass = strtotime($input[$field])>0;
+        } else {
+            $pass = (date($args[0], strtotime($input[$field])) === $input[$field]);
         }
 
-        // 格式化 Y-m-d
-        return (date($args[0], strtotime($input[$field])) === $input[$field]);
+        if ($pass) {
+            return $layer::then(['type'=>$layer::FIELD_TYPE_DATE]);
+        }
+        return false;
     }
 }

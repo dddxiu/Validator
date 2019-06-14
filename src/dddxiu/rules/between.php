@@ -2,8 +2,6 @@
 
 namespace Dddxiu\rules;
 
-use Dddxiu\Funnel;
-
 /**
  * 区间
  */
@@ -13,9 +11,6 @@ class Between extends Rule
     
     // flag
     const F = 'bt';
-
-    // exec sort
-    const S = 5;
 
 
     /**
@@ -27,18 +22,24 @@ class Between extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $type = $prev['type'] ?? Funnel::FIELD_TYPE_STR;
+        $type = $layer->extra('type', $layer::FIELD_TYPE_STR);
         $min  = $args[0] ?? NULL;
         $max  = $args[1] ?? NULL;
         switch ($type) {
-            case Funnel::FIELD_TYPE_STR:
-                return static::str_len($input[$field], $min, $max);
-            case Funnel::FIELD_TYPE_NUM:
-                return static::num_size($input[$field], $min, $max);
-            case Funnel::FIELD_TYPE_DATE:
-                return static::date_span($input[$field], $min, $max);
+            case $layer::FIELD_TYPE_STR:
+                $pass = static::str_len($input[$field], $min, $max);
+                break;
+            case $layer::FIELD_TYPE_NUM:
+                $pass = static::num_size($input[$field], $min, $max);
+                break;
+            case $layer::FIELD_TYPE_DATE:
+                $pass = static::date_span($input[$field], $min, $max);
+                break;
+        }
+        if ($pass) {
+            return $layer::then();
         }
         return false;
     }

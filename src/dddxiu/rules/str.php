@@ -10,9 +10,6 @@ class Str extends Rule
     // flag
     const F = 's';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 没有值就不继续校验
@@ -23,8 +20,12 @@ class Str extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return is_string($input[$field]);
+        $pass = is_string($input[$field]);
+        if ($pass) {
+            return $layer::then($layer::FIELD_TYPE_STR);
+        }
+        return false;
     }
 }

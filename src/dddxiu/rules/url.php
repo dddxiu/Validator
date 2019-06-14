@@ -10,9 +10,6 @@ class URL extends Rule
     // flag
     const F = 'url';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * URL
@@ -23,8 +20,12 @@ class URL extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return filter_var($input[$field], FILTER_SANITIZE_URL) !== false;
+        $pass = filter_var($input[$field], FILTER_SANITIZE_URL) !== false;
+        if ($pass) {
+            return $layer::then($layer::FIELD_TYPE_STR);
+        }
+        return false;
     }
 }

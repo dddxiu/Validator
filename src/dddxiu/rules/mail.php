@@ -10,9 +10,6 @@ class Mail extends Rule
     // flag
     const F = 'mail';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 电子邮箱
@@ -23,8 +20,12 @@ class Mail extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return filter_var($input[$field], FILTER_VALIDATE_EMAIL) !== false;
+        $pass = (filter_var($input[$field], FILTER_VALIDATE_EMAIL) !== false);
+        if ($pass) {
+            return $layer::then(['type' => Funnel::FIELD_TYPE_STR]);
+        }
+        return false;
     }
 }

@@ -10,22 +10,23 @@ class Required extends Rule
     // flag
     const F = 'r';
 
-    // exec sort
-    const S = 0;
-
-
     /**
      * 必须校验
+     * 两个返回值:
+     *     1.校对结果   pass
+     *     2.是否打翻漏斗 overturn
      * 
      * @param  [type] $input [description]
      * @param  [type] $field [description]
-     * @param  [type] $args  [description]
-     * @param  [type] &$next [description]
+     * @param  [type] $funnel[description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $next = array_key_exists($field, $input);
-        return array_key_exists($field, $input);
+        $pass = array_key_exists($field, $input);
+        if ($pass) {
+            return $layer::then();
+        }
+        return false;
     }
 }

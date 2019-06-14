@@ -2,8 +2,6 @@
 
 namespace Dddxiu\rules;
 
-use Dddxiu\Funnel;
-
 /**
  * 长度
  */
@@ -13,9 +11,6 @@ class Length extends Rule
 
     // flag
     const F = 'len';
-
-    // 处理顺序
-    const S = 5;
 
 
     /**
@@ -27,16 +22,22 @@ class Length extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $type = $prev['type'] ?? Funnel::FIELD_TYPE_STR;
+        $type = $layer->extra('type', $layer::FIELD_TYPE_STR);
         switch ($type) {
-            case Funnel::FIELD_TYPE_STR:
-                return mb_strlen($input[$field]) == $args[0];
-            case Funnel::FIELD_TYPE_NUM:
-                return strlen((string)$input[$field]) == $args[0];
-            case Funnel::FIELD_TYPE_DATE:
-                return false;
+            case $layer::FIELD_TYPE_STR:
+                $pass = mb_strlen($input[$field]) == $args[0];
+                break;
+            case $layer::FIELD_TYPE_NUM:
+                $pass = strlen((string)$input[$field]) == $args[0];
+                break;
+            case $layer::FIELD_TYPE_DATE:
+                $pass = false;
+                break;
+        }
+        if ($pass) {
+            return $layer::then();
         }
         return false;
     }

@@ -12,9 +12,6 @@ class Integer extends Rule
     // flag
     const F = 'i';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 没有值就不继续校验
@@ -25,10 +22,12 @@ class Integer extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $prev['type'] = Funnel::FIELD_TYPE_NUM;
-
-        return ctype_digit($input[$field]);
+        $pass = ctype_digit($input[$field]);
+        if ($pass) {
+            return $layer::then(['type' => Funnel::FIELD_TYPE_NUM]);
+        }
+        return false;
     }
 }

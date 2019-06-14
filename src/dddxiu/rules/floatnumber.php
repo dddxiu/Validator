@@ -12,9 +12,6 @@ class FloatNumber extends Rule
     // flag
     const F = 'f';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 浮点数
@@ -25,15 +22,20 @@ class FloatNumber extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $prev['type'] = Funnel::FIELD_TYPE_NUM;
-
+        // 是不是数字
         $var = $input[$field];
         if (($var == (string)floatval($var))) {
             return false;
         }
+
         // 不是整数就是浮点 ....
-        return !ctype_digit($input[$field]);
+        $pass = !ctype_digit($input[$field]);
+        if ($pass) {
+            return $layer::then(['type' => Funnel::FIELD_TYPE_NUM]);
+        }
+        return false;
+
     }
 }

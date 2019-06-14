@@ -10,9 +10,6 @@ class JSON extends Rule
     // flag
     const F = 'json';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * JSON
@@ -23,8 +20,12 @@ class JSON extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return (json_decode($input[$field], true) !== NULL);
+        $pass = (json_decode($input[$field], true) !== NULL);
+        if ($pass) {
+            return $layer::then(['type' => $layer::FIELD_TYPE_STR]);
+        }
+        return false;
     }
 }

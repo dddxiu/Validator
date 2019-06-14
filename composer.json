@@ -16,11 +16,11 @@
     "autoload": {
         "psr-4": {
             "Dddxiu\\": "src/dddxiu"
-        }
+        },
+        "files": [
+            "src/dddxiu/function.php"
+        ]
     },
     "autoload-dev": {
-        "psr-4": {
-            "Dddxiu\\": "tests/dddxiu"
-        }
     }
 }

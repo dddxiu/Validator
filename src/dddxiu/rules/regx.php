@@ -10,9 +10,6 @@ class REGX extends Rule
     // flag
     const F = 'regx';
 
-    // exec sort
-    const S = 3;
-
 
     /**
      * 正则
@@ -23,8 +20,12 @@ class REGX extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        return (preg_match($p, $input[$field]) === 1);
+        $pass = (preg_match($args[0], $input[$field]) === 1);
+        if ($pass) {
+            return $layer::then($layer::FIELD_TYPE_STR);
+        }
+        return false;
     }
 }

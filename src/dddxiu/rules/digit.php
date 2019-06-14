@@ -12,9 +12,6 @@ class Digit extends Rule
     // flag
     const F = 'd';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 没有值就不继续校验
@@ -25,10 +22,13 @@ class Digit extends Rule
      * @param  [type] &$next [description]
      * @return [type]        [description]
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
-        $prev['type'] = Funnel::FIELD_TYPE_NUM;
-        $var = $input[$field];
-        return $var == (string)floatval($var);
+        $var  = $input[$field];
+        $pass = $var == (string)floatval($var);
+        if ($pass) {
+            return $layer::then(['type'=>$layer::FIELD_TYPE_NUM]);
+        }
+        return false;
     }
 }

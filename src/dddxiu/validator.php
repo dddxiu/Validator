@@ -10,18 +10,18 @@ use Dddxiu\exception\ArgsException;
 /**
  * 校验器
  */
-class Validator
+class Validator extends Singleton
 {
     /**
      * 自定义校验规则
      * 
-     * @param  [type] $key      [description]
-     * @param  [type] $callable [description]
-     * @return [type]           [description]
+     * @param  [type] $key  [description]
+     * @param  [type] $call [description]
+     * @return [type]       [description]
      */
-    private function make($key, $callable, $msg)
+    protected function make($key, $call, $msg)
     {
-        Funnel::register($key, $callable);
+        Funnel::register($key, $call);
         Message::register($key, $msg);
     }
 
@@ -35,7 +35,7 @@ class Validator
      * @param  boolean $ret   立即返回
      * @return bool|array     校对结果或则错误信息
      */
-    private function validate($input, $rules, $msgs=[], $ret=false)
+    protected function validate($input, $rules, $msgs=[], $ret=false)
     {
         $this->input($input)->rules($rules);
         if (is_bool($msgs)) {
@@ -48,7 +48,7 @@ class Validator
     /**
      * 输入
      */
-    private function input($input)
+    protected function input($input)
     {
         $this->input = $input;
         return $this;
@@ -58,7 +58,7 @@ class Validator
     /**
      * 规则
      */
-    private function rules($rules)
+    protected function rules($rules)
     {
         $this->rules = $rules;
         return $this;
@@ -68,13 +68,13 @@ class Validator
     /**
      * 自定义信息
      */
-    private function msgs($msgs=[])
+    protected function msgs($msgs=[])
     {
         $this->msgs = [];
         foreach ($msgs as $field_rule => $msg) {
             $field_rule = explode('.', $field_rule);
             if (count($field_rule) !== 2) {
-                throw new \Exception("{$field_rule} {$msg} format error", 1);
+                throw new ArgsException("{$field_rule} {$msg} format error", 1);
             }
             list($field, $rule) = $field_rule;
             $this->msgs[$field][$rule] = $msg;
@@ -86,7 +86,7 @@ class Validator
     /**
      * 检查字段
      */
-    private function check($final=false)
+    protected function check($final=false)
     {
         Funnel::standing($this->input, $this->rules, $final);
         $this->error_list = Funnel::get_errors();
@@ -97,7 +97,7 @@ class Validator
     /**
      * 校验通过
      */
-    private function pass()
+    protected function pass()
     {
         return (count($this->error_list) === 0);
     }
@@ -106,7 +106,7 @@ class Validator
     /**
      * 错误列表
      */
-    private function errors($all=false)
+    protected function errors($all=false)
     {
         $temp_errors = [];
         foreach ($this->error_list as $field => $rule_list) {
@@ -129,66 +129,14 @@ class Validator
     /**
      * 清理错误
      */
-    private function clean()
+    protected function clean()
     {
         $this->rules = [];
         $this->input = [];
         $this->msgs  = [];
         $this->error_list = [];
     }
-    
 
-    static private $instance;
-
-
-    public static function __callStatic($method_name, $args)
-    {
-        $instance = static::getInstance();
-        if (method_exists($instance, $method_name)) {
-            return call_user_func_array([$instance, $method_name], $args);
-        };
-        throw new Exception("{$method_name} not exists", 1);
-    }
-
-
-    public function __call($name, $args)
-    {
-        if (method_exists($this, $name)) {
-            return call_user_func_array([$this, $name], $args);
-        };
-        throw new ArgsException("{$name} not exists", 1);
-    }
-
-    
-    public static function getInstance()
-    {
-        if (NULL == self::$instance) {
-            self::$instance = new static();
-        }
-        return self::$instance;
-    }
-}
-
-/**
- * validator::check($input, $rule, $msg, $ret)
- */
-function vc($input, $rule, $msg=[], $ret=false)
-{
-    return Validator::validate($input, $rule, $msg, $ret);
-}
-
-/**
- * validator::pass()
- */
-function vp()
-{
-    return Validator::pass();
-}
-
-/**
- * validator::error()
- */
-function ve($all=false)
-{
-    return Validator::errors($all);
+    // 与父实例区分开
+    public static $instance;
 }

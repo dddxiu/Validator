@@ -15,5 +15,5 @@ abstract class Rule
      * @param  boolean &$next 是否继续
      * @return boolean 是否成功
      */
-    abstract public static function valid($input, $field, $args, &$next, &$prev);
+    abstract public static function valid($input, $field, $layer, $args);
 }

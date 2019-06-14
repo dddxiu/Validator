@@ -10,9 +10,6 @@ class Alnum extends Rule
     // flag
     const F = 'w';
 
-    // exec sort
-    const S = 2;
-
 
     /**
      * 必须校验
@@ -23,15 +20,13 @@ class Alnum extends Rule
      * @param  [type] &$next 继续,仅[r,n]使用
      * @return [type]        结果
      */
-    public static function valid($input, $field, $args, &$next, &$prev)
+    public static function valid($input, $field, $layer, $args)
     {
         // 处理字符问题
         $len = strlen($input[$field]);
-        for ($i=0; $i < $len; $i++) { 
-            if (!ctype_alnum($input[$field][$i])) {
+        for ($i=0; $i < $len; $i++)
+            if (!ctype_alnum($input[$field][$i]))
                 return false;
-            }
-        }
-        return true;
+        return $layer::then(['type'=>$layer::FIELD_TYPE_STR]);
     }
 }
