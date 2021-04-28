@@ -9,6 +9,8 @@ use Dddxiu\exception\ArgsException;
  */
 class Singleton
 {
+    // 继承单例
+    public static $instance;
 
     /**
      * 限制引用传值
@@ -45,15 +47,18 @@ class Singleton
     
     /**
      * 类静态常量保持单例
-     * 
-     * @return [type] [description]
+     * 意味着只能静态调用改方法
+     * @return object 调用class
      */
     public static function getInstance()
     {
         $cls = get_called_class();
-        if ($cls::$instance == NULL) {
-            $cls::$instance = new static();
+        $ins = $cls::$instance[$cls] ?? NULL;
+
+        if ($ins == NULL) {
+            $ins = new static();
+            $cls::$instance[$cls] = $ins;
         }
-        return $cls::$instance;
+        return $ins;
     }
 }

@@ -137,6 +137,4 @@ class Validator extends Singleton
         $this->error_list = [];
     }
 
-    // 与父实例区分开
-    public static $instance;
 }

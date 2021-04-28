@@ -30,7 +30,7 @@ class Funnel extends Singleton
     /**
      * load本地规则
      */
-    public function __construct()
+    protected function __construct()
     {
         $this->load_rules();
     }
@@ -169,6 +169,5 @@ class Funnel extends Singleton
     {
         return $this->errors;
     }
-    
-    public static $instance;
+
 }

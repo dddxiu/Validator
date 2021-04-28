@@ -180,5 +180,4 @@ class Layer extends Singleton
         return $this->extra[$key] ?? $default;
     }
 
-    public static $instance;
 }

@@ -5,10 +5,10 @@ namespace Dddxiu;
 /**
  * 消息处理
  */
-class Message
+class Message extends Singleton
 {
 
-    public function __construct($lang='zh_cn')
+    protected function __construct($lang='zh_cn')
     {
         $this->lang = $lang;
         $this->load();
@@ -20,7 +20,7 @@ class Message
      * @param  string $path 文件路径
      * @return [type]       [description]
      */
-    public function load($path='')
+    protected function load($path='')
     {
         if (empty($path)) {
             $path = dirname(__DIR__)."/lang/{$this->lang}.php";
@@ -35,7 +35,7 @@ class Message
      * @param  string $msg [description]
      * @return [type]      [description]
      */
-    private function register($key='', $msg='error')
+    protected function register($key='', $msg='error')
     {
         $this->msgs[$key] = $msg;
     }
@@ -51,7 +51,7 @@ class Message
      * @param  string $c 自定义消息
      * @return array
      */
-    private function format($t='', $p=[], $c=[])
+    protected function format($t='', $p=[], $c=[])
     {
         if (array_key_exists($t, $c)) {
             $msg = $c[$t];
@@ -70,36 +70,5 @@ class Message
                 break;
         }
         return $msg;
-    }
-    
-
-    static private $instance;
-
-
-    public static function __callStatic($method_name, $args)
-    {
-        $instance = static::getInstance();
-        if (method_exists($instance, $method_name)) {
-            return call_user_func_array([$instance, $method_name], $args);
-        };
-        throw new Exception("{$method_name} not exists", 1);
-    }
-
-
-    public function __call($method_name, $args)
-    {
-        if (method_exists($this, $method_name)) {
-            return call_user_func_array([$this, $method_name], $args);
-        };
-        throw new Exception("{$method_name} not exists", 1);
-    }
-
-
-    public static function getInstance()
-    {
-        if (NULL == self::$instance) {
-            self::$instance = new static();
-        }
-        return self::$instance;
     }
 }
